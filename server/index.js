@@ -2,22 +2,36 @@ import express from 'express'
 import bodyParser from 'body-parser' ;
 import mongoose from 'mongoose';
 import cors from 'cors';
-
-import postRoutes from './routes/posts.js' ;
-
-const app = express();
-
-app.use('/posts', postRoutes);
-
-app.use(bodyParser.json({ limit:"30mb", extended: true}));
-app.use(bodyParser.urlencoded({ limit:"30mb", extended: true}));
-app.use(cors());
+import morgan from 'morgan';
 
 
-const CONNECTION_URL = 'mongodb+srv://project:project@cluster0.ttbc2.mongodb.net/?retryWrites=true&w=majority'
-const PORT = process.env.PORT || 80;
+mongoose.connect('mongodb+srv://project:project@cluster0.ttbc2.mongodb.net/?retryWrites=true&w=majority');
+var db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error"));
+db.once("open", function(callback){
+  console.log("Connection Succeeded");
+});
 
-mongoose.connect(CONNECTION_URL, { useUnifiedTopology: true })
-    .then(()=> app.listen(PORT, () => console.log('Server running on port : ${PORT} ') ))
-    .catch((error) => console.log(error.message));
+const app = express()
+app.use(morgan('combined'))
+app.use(bodyParser.json())
+app.use(cors())
 
+app.get('/posts', (req, res) => {
+    res.send(
+      [{
+        title: "Hello World!",
+        description: "Hi there! How are you?"
+      },
+      {
+        title: "Docker",
+        description: "Docker is awesome!"
+      },
+      {
+        title: "WDJ",
+        description: "WDJ is aight"
+      }]
+    )
+  })
+
+app.listen(process.env.PORT || 8081)
